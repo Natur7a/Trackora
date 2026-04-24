@@ -85,7 +85,7 @@ export function TransactionForm({ initial, onSubmit, onCancel, submitLabel = 'Ad
           name="type"
           value={form.type}
           onChange={handleChange}
-          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
+          className="themed-select w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 pr-10 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
         >
           <option value="income">Income</option>
           <option value="expense">Expense</option>
@@ -98,7 +98,7 @@ export function TransactionForm({ initial, onSubmit, onCancel, submitLabel = 'Ad
           name="category"
           value={form.category}
           onChange={handleChange}
-          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
+          className="themed-select w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 pr-10 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
         >
           {CATEGORIES.map(cat => (
             <option key={cat} value={cat}>{cat}</option>

@@ -1,52 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
-:root {
-	--muted-foreground: #94a3b8;
+/* ------------------------------------------------------------------ */
+/*  Trackora — design system                                          */
+/*  Editorial dark finance: midnight + parchment + emerald + coral    */
+/* ------------------------------------------------------------------ */
+
+@layer base {
+  :root {
+    /* Surfaces */
+    --background: 160 18% 7%;
+    --foreground: 40 35% 94%;
+
+    --card: 160 16% 10%;
+    --card-foreground: 40 35% 94%;
+
+    --popover: 160 18% 9%;
+    --popover-foreground: 40 35% 94%;
+
+    /* Brand */
+    --primary: 156 72% 55%;          /* vibrant emerald */
+    --primary-foreground: 160 30% 8%;
+    --primary-glow: 152 90% 65%;
+
+    --secondary: 160 14% 14%;
+    --secondary-foreground: 40 30% 92%;
+
+    --muted: 160 12% 16%;
+    --muted-foreground: 40 12% 68%;
+
+    --accent: 18 92% 66%;            /* coral / expense */
+    --accent-foreground: 20 30% 10%;
+
+    --destructive: 0 78% 62%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 160 14% 18%;
+    --input: 160 14% 16%;
+    --ring: 156 72% 55%;
+
+    --income: 156 72% 55%;
+    --expense: 18 92% 66%;
+
+    --radius: 0.875rem;
+
+    /* Gradients */
+    --gradient-hero: radial-gradient(ellipse at top left, hsl(156 72% 55% / 0.18), transparent 55%),
+                     radial-gradient(ellipse at bottom right, hsl(18 92% 66% / 0.12), transparent 50%),
+                     linear-gradient(180deg, hsl(160 20% 6%), hsl(160 18% 7%));
+    --gradient-card: linear-gradient(145deg, hsl(160 16% 12% / 0.9), hsl(160 18% 9% / 0.9));
+    --gradient-primary: linear-gradient(135deg, hsl(156 72% 55%), hsl(152 90% 65%));
+    --gradient-expense: linear-gradient(135deg, hsl(18 92% 66%), hsl(8 88% 60%));
+
+    /* Shadows */
+    --shadow-soft: 0 1px 2px hsl(160 30% 2% / 0.4), 0 8px 24px hsl(160 30% 2% / 0.35);
+    --shadow-glow: 0 0 0 1px hsl(156 72% 55% / 0.25), 0 18px 48px -12px hsl(156 72% 55% / 0.45);
+    --shadow-card: 0 1px 0 hsl(40 30% 92% / 0.04) inset, 0 12px 32px -16px hsl(160 30% 2% / 0.6);
+
+    /* Motion */
+    --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Sidebar (kept for shadcn defaults) */
+    --sidebar-background: 160 18% 7%;
+    --sidebar-foreground: 40 35% 94%;
+    --sidebar-primary: 156 72% 55%;
+    --sidebar-primary-foreground: 160 30% 8%;
+    --sidebar-accent: 160 14% 14%;
+    --sidebar-accent-foreground: 40 30% 92%;
+    --sidebar-border: 160 14% 18%;
+    --sidebar-ring: 156 72% 55%;
+  }
 }
 
-.display-serif {
-	font-family: Georgia, "Times New Roman", serif;
+@theme inline {
+  --font-sans: "Inter", sans-serif;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-sidebar-background: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-glow: var(--shadow-glow);
 }
 
-.text-muted-foreground {
-	color: var(--muted-foreground);
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+    background-image: var(--gradient-hero);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.35);
+    color: hsl(var(--foreground));
+  }
 }
 
-.mono {
-	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+@layer components {
+  .display-serif {
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+  }
+
+  .glass-card {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(12px);
+  }
 }
 
-.themed-select {
-	appearance: none;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-	background-repeat: no-repeat;
-	background-position: right 0.75rem center;
-	background-size: 14px;
-}
+@layer utilities {
+  .text-income { color: hsl(var(--income)); }
+  .text-expense { color: hsl(var(--expense)); }
+  .bg-income { background-color: hsl(var(--income)); }
+  .bg-expense { background-color: hsl(var(--expense)); }
 
-.themed-select option {
-	background: #0f172a;
-	color: #e2e8f0;
-}
+  .dashboard-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.35) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.35) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(circle at center, black 35%, transparent 85%);
+  }
 
-.glass-card {
-	background: rgba(15, 23, 42, 0.45);
-	border: 1px solid rgba(255, 255, 255, 0.1);
-	box-shadow: 0 16px 40px rgba(2, 6, 23, 0.35);
-	backdrop-filter: blur(10px);
+  .animate-fade-up {
+    animation: fade-up 500ms var(--ease-spring) both;
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
 }
 
 @keyframes fade-up {
-	from {
-		opacity: 0;
-		transform: translateY(10px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-.animate-fade-up {
-	animation: fade-up 360ms ease-out;
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

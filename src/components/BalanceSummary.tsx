@@ -9,22 +9,29 @@ function fmt(n: number) {
 }
 
 export function BalanceSummary({ income, expense, balance }: BalanceSummaryProps) {
+  const savingsRate = income > 0 ? Math.max(0, Math.min(100, Math.round((balance / income) * 100))) : 0
+
   return (
-    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <article className="glass-card rounded-3xl p-5">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Income</p>
-        <p className="text-2xl font-semibold text-emerald-300 mt-3">{fmt(income)}</p>
+    <section className="space-y-4">
+      <article className="glass-card rounded-3xl p-6 md:p-8 bg-gradient-to-r from-emerald-500/15 via-cyan-500/8 to-transparent">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">Current Balance</p>
+        <p className="display-serif text-5xl md:text-6xl mt-2 mono tabular-nums">{fmt(balance)}</p>
       </article>
-      <article className="glass-card rounded-3xl p-5">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Expense</p>
-        <p className="text-2xl font-semibold text-rose-300 mt-3">{fmt(expense)}</p>
-      </article>
-      <article className="glass-card rounded-3xl p-5 sm:col-span-2 lg:col-span-1">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Balance</p>
-        <p className={`text-2xl font-semibold mt-3 ${balance >= 0 ? 'text-cyan-300' : 'text-rose-300'}`}>
-          {fmt(balance)}
-        </p>
-      </article>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <article className="glass-card rounded-2xl p-4">
+          <p className="text-xs uppercase tracking-widest text-emerald-300">Income</p>
+          <p className="display-serif text-4xl mt-1 mono tabular-nums">{fmt(income)}</p>
+        </article>
+        <article className="glass-card rounded-2xl p-4">
+          <p className="text-xs uppercase tracking-widest text-orange-300">Expenses</p>
+          <p className="display-serif text-4xl mt-1 mono tabular-nums">{fmt(expense)}</p>
+        </article>
+        <article className="glass-card rounded-2xl p-4">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Savings Rate</p>
+          <p className="display-serif text-4xl mt-1 mono tabular-nums">{savingsRate}%</p>
+        </article>
+      </div>
     </section>
   )
 }

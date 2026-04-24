@@ -31,9 +31,9 @@ export function AnalyticsPage() {
   }))
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 text-slate-100">
+    <div className="min-h-screen">
       <Navbar />
-      <main className="container mx-auto px-4 py-10 space-y-10 animate-fade-up">
+      <main className="container mx-auto py-10 space-y-10 animate-fade-up">
         <div>
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Analytics</p>
           <h1 className="display-serif text-4xl md:text-5xl font-semibold mt-1">The story of your money</h1>

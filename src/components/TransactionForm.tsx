@@ -1,153 +1,108 @@
-import { useState } from 'react'
-import type { TransactionFormData } from '../types'
-import { CATEGORIES } from '../types'
+import { useState } from 'react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, type TxType } from '../types/finance';
+import type { TransactionFormData } from '../types';
+import { ArrowDownCircle, ArrowUpCircle, Plus } from 'lucide-react';
+import { toast } from '../components/ui/sonner';
 
-interface TransactionFormProps {
-  initial?: TransactionFormData
-  onSubmit: (data: TransactionFormData) => Promise<{ error: string | null }>
-  onCancel?: () => void
-  submitLabel?: string
+type TxInput = TransactionFormData;
+
+interface Props {
+  onSubmit: (input: TxInput) => Promise<{ error: string | null }>;
+  initial?: Partial<TxInput>;
+  submitLabel?: string;
+  onCancel?: () => void;
 }
 
-const defaultForm: TransactionFormData = {
-  amount: '',
-  type: 'expense',
-  category: 'Other',
-  date: new Date().toISOString().split('T')[0],
-  note: '',
-}
+export const TransactionForm = ({ onSubmit, initial, submitLabel = 'Add transaction', onCancel }: Props) => {
+  const [type, setType] = useState<TxType>(initial?.type ?? 'expense');
+  const [amount, setAmount] = useState(initial?.amount?.toString() ?? '');
+  const [category, setCategory] = useState(initial?.category ?? '');
+  const [date, setDate] = useState(initial?.date ?? new Date().toISOString().slice(0, 10));
+  const [note, setNote] = useState(initial?.note ?? '');
+  const [busy, setBusy] = useState(false);
 
-export function TransactionForm({ initial, onSubmit, onCancel, submitLabel = 'Add Transaction' }: TransactionFormProps) {
-  const [form, setForm] = useState<TransactionFormData>(initial ?? defaultForm)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const cats = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-    setError(null)
-    setSuccess(false)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const amount = parseFloat(form.amount)
-    if (!form.amount || isNaN(amount) || amount <= 0) {
-      setError('Please enter a valid positive amount.')
-      return
-    }
-    if (!form.date) {
-      setError('Please select a date.')
-      return
-    }
-    setSubmitting(true)
-    const { error } = await onSubmit(form)
-    setSubmitting(false)
-    if (error) {
-      setError(error)
-    } else {
-      setSuccess(true)
-      if (!initial) setForm(defaultForm)
-    }
-  }
+  const handle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const num = Number(amount);
+    if (!num || num <= 0) return toast.error('Enter a valid amount');
+    if (!category) return toast.error('Pick a category');
+    setBusy(true);
+    const { error } = await onSubmit({ amount: String(num), type, category, date, note: note || '' });
+    setBusy(false);
+    if (error) return toast.error(error);
+    toast.success('Saved');
+    if (!initial) { setAmount(''); setNote(''); setCategory(''); }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-          {error}
-        </div>
-      )}
-      {success && !initial && (
-        <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-          Transaction added successfully!
-        </div>
-      )}
-
-      <div>
-        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Amount *</label>
-        <input
-          type="number"
-          name="amount"
-          value={form.amount}
-          onChange={handleChange}
-          placeholder="0.00"
-          min="0.01"
-          step="0.01"
-          required
-          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Type *</label>
-        <select
-          name="type"
-          value={form.type}
-          onChange={handleChange}
-          className="themed-select w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 pr-10 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
-        >
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Category *</label>
-        <select
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          className="themed-select w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 pr-10 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
-        >
-          {CATEGORIES.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Date *</label>
-        <input
-          type="date"
-          name="date"
-          value={form.date}
-          onChange={handleChange}
-          required
-          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Note</label>
-        <textarea
-          name="note"
-          value={form.note}
-          onChange={handleChange}
-          placeholder="Optional note..."
-          rows={2}
-          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/60 resize-none"
-        />
-      </div>
-
-      <div className="flex gap-2">
+    <form onSubmit={handle} className="space-y-5">
+      <div className="grid grid-cols-2 gap-2 p-1 bg-white/5 border border-white/10 rounded-xl">
         <button
-          type="submit"
-          disabled={submitting}
-          className="flex-1 bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 hover:opacity-90 disabled:opacity-70 font-semibold py-2 px-4 rounded-xl text-sm transition"
+          type="button" onClick={() => { setType('expense'); setCategory(''); }}
+          className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+            type === 'expense' ? 'bg-[#ff6b47] text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+          }`}
         >
-          {submitting ? 'Saving...' : submitLabel}
+          <ArrowDownCircle className="h-4 w-4" /> Expense
         </button>
+        <button
+          type="button" onClick={() => { setType('income'); setCategory(''); }}
+          className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+            type === 'income' ? 'bg-emerald-400 text-slate-950 shadow-md' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <ArrowUpCircle className="h-4 w-4" /> Income
+        </button>
+      </div>
+
+      <div>
+        <Label htmlFor="amount" className="text-xs uppercase tracking-widest text-slate-400">Amount</Label>
+        <div className="relative mt-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 display-serif text-lg">$</span>
+          <Input
+            id="amount" type="number" step="0.01" inputMode="decimal" placeholder="0.00"
+            value={amount} onChange={(e) => setAmount(e.target.value)}
+            className="pl-7 mono text-2xl h-14 bg-white/10 border-white/10 rounded-xl"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label className="text-xs uppercase tracking-widest text-slate-400">Category</Label>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="mt-1 h-12 bg-white/10 border-white/10 rounded-xl"><SelectValue placeholder="Choose..." /></SelectTrigger>
+            <SelectContent>
+              {cats.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="date" className="text-xs uppercase tracking-widest text-slate-400">Date</Label>
+          <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 h-12 bg-white/10 border-white/10 rounded-xl" />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="note" className="text-xs uppercase tracking-widest text-slate-400">Note (optional)</Label>
+        <Input id="note" placeholder="Coffee, rent, paycheck..." value={note ?? ''} onChange={(e) => setNote(e.target.value)} className="mt-1 h-12 bg-white/10 border-white/10 rounded-xl" />
+      </div>
+
+      <div className="flex gap-2 pt-2">
+        <Button type="submit" disabled={busy} className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-400 to-green-300 text-slate-950 hover:opacity-90 shadow-glow font-semibold">
+          <Plus className="h-4 w-4 mr-1" />
+          {busy ? 'Saving…' : submitLabel}
+        </Button>
         {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 bg-white/10 hover:bg-white/20 text-slate-100 font-medium py-2 px-4 rounded-xl text-sm transition-colors"
-          >
-            Cancel
-          </button>
+          <Button type="button" onClick={onCancel}>Cancel</Button>
         )}
       </div>
     </form>
-  )
-}
+  );
+};

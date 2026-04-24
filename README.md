@@ -8,6 +8,7 @@ A personal finance tracking app built with **React + TypeScript + Tailwind CSS +
 - 💸 **Transactions** — Add, view, edit, and delete income/expense transactions
 - 🏷️ **Categories** — Predefined categories for each transaction
 - 📊 **Dashboard** — Balance summary with income/expense totals
+- 📈 **Monthly Analytics** — Monthly totals, category spending breakdown, and month-over-month comparison
 - 🛡️ **Row-Level Security** — Only the owner can access their own data
 
 ## Tech Stack
@@ -56,12 +57,14 @@ In your [Supabase SQL Editor](https://app.supabase.com/project/_/sql), run the m
 
 ```
 supabase/migrations/20240101000000_create_finance_transactions.sql
+supabase/migrations/20260424000000_create_monthly_analytics_function.sql
 ```
 
 This creates the `FinanceTransactions` table with:
 - All required columns (`id`, `user_id`, `amount`, `type`, `category`, `date`, `note`, `created_at`, `updated_at`)
 - Row Level Security (RLS) enabled
 - Policies so only the owner can select/insert/update/delete their own rows
+- `get_monthly_analytics` RPC function that returns chart-ready monthly aggregates for the authenticated user
 
 ### 5. Run the development server
 
@@ -83,12 +86,14 @@ npm run build
 src/
 ├── lib/
 │   └── supabase.ts          # Supabase client (reads env vars)
+│   └── analytics.ts         # Analytics RPC wrapper
 ├── types/
 │   └── index.ts             # TypeScript types and constants (CATEGORIES)
 ├── context/
 │   └── AuthContext.tsx      # Auth context with session state
 ├── hooks/
 │   └── useTransactions.ts   # Transactions CRUD hook
+│   └── useMonthlyAnalytics.ts # Monthly analytics hook
 ├── components/
 │   ├── Navbar.tsx            # Top navigation bar
 │   ├── ProtectedRoute.tsx    # Route guard (redirects if unauthenticated)
@@ -97,12 +102,14 @@ src/
 ├── pages/
 │   ├── AuthPage.tsx          # Login / Register page
 │   └── DashboardPage.tsx     # Main protected dashboard
+│   └── AnalyticsPage.tsx     # Protected analytics page
 ├── App.tsx                   # Router setup
 ├── main.tsx                  # App entry point
 └── index.css                 # Tailwind CSS import
 supabase/
 └── migrations/
     └── 20240101000000_create_finance_transactions.sql
+    └── 20260424000000_create_monthly_analytics_function.sql
 ```
 
 ## Testing the Auth Flow

@@ -39,3 +39,39 @@ export interface TransactionFormData {
   date: string
   note: string
 }
+
+export interface MonthlyTotals {
+  income: number
+  expense: number
+  net: number
+}
+
+export interface CategorySpending {
+  category: string
+  total: number
+  percentage: number
+}
+
+export interface AnalyticsChartSeries {
+  labels: string[]
+  values: number[]
+}
+
+export interface MonthComparison {
+  current: MonthlyTotals
+  previous: MonthlyTotals
+  change: MonthlyTotals
+}
+
+export interface MonthlyAnalytics {
+  month: string
+  totals: MonthlyTotals
+  categoryBreakdown: CategorySpending[]
+  categoryChart: AnalyticsChartSeries
+  monthComparison: MonthComparison
+  comparisonChart: {
+    labels: string[]
+    current: number[]
+    previous: number[]
+  }
+}

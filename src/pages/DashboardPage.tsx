@@ -1,59 +1,55 @@
-import { useState } from 'react'
 import { Navbar } from '../components/Navbar'
+import { BalanceSummary } from '../components/BalanceSummary'
 import { TransactionForm } from '../components/TransactionForm'
 import { TransactionList } from '../components/TransactionList'
-import { useAuth } from '../context/AuthContext'
 import { useTransactions } from '../hooks/useTransactions'
 
-type View = 'add' | 'list'
-
 export function DashboardPage() {
-  const { user } = useAuth()
-  const { transactions, loading, error, addTransaction, updateTransaction, deleteTransaction } = useTransactions(user?.id)
-  const [view, setView] = useState<View>('add')
+  const { transactions, loading, error, income, expense, balance, add, update, remove } = useTransactions()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 text-slate-100">
       <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Finance Dashboard</h2>
-
-        {/* View Toggle */}
-        <div className="flex rounded-lg bg-gray-200 p-1 mb-6">
-          <button
-            onClick={() => setView('add')}
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${view === 'add' ? 'bg-white shadow text-blue-700' : 'text-gray-600 hover:text-gray-800'}`}
-          >
-            + Add Transaction
-          </button>
-          <button
-            onClick={() => setView('list')}
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${view === 'list' ? 'bg-white shadow text-blue-700' : 'text-gray-600 hover:text-gray-800'}`}
-          >
-            📋 Transactions ({transactions.length})
-          </button>
+      <main className="container mx-auto px-4 py-10 space-y-10 animate-fade-up">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Dashboard</p>
+          <h1 className="display-serif text-4xl md:text-5xl font-semibold mt-1">Your finance journal</h1>
         </div>
 
+        <BalanceSummary income={income} expense={expense} balance={balance} />
+
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+          <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
             {error}
           </div>
         )}
 
-        {view === 'add' ? (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">New Transaction</h3>
-            <TransactionForm onSubmit={addTransaction} />
-          </div>
-        ) : (
-          <TransactionList
-            transactions={transactions}
-            loading={loading}
-            onDelete={deleteTransaction}
-            onUpdate={updateTransaction}
-          />
-        )}
+        <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
+          <aside className="lg:sticky lg:top-24 self-start">
+            <div className="glass-card rounded-3xl p-6">
+              <h2 className="display-serif text-xl font-semibold mb-4">Add transaction</h2>
+              <TransactionForm onSubmit={add} />
+            </div>
+          </aside>
+
+          <section>
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="display-serif text-2xl font-semibold">Recent activity</h2>
+              <span className="text-sm text-muted-foreground">
+                {transactions.length} {transactions.length === 1 ? 'entry' : 'entries'}
+              </span>
+            </div>
+            <TransactionList
+              transactions={transactions}
+              loading={loading}
+              onUpdate={update}
+              onDelete={remove}
+            />
+          </section>
+        </div>
       </main>
     </div>
   )
 }
+
+export default DashboardPage

@@ -1,0 +1,17 @@
+export const CATEGORY_EMOJI: Record<string, string> = {
+  Salary: '💼',
+  Freelance: '🧑‍💻',
+  Investment: '📈',
+  Gift: '🎁',
+  'Food & Dining': '🍜',
+  Transport: '🚕',
+  Housing: '🏠',
+  Entertainment: '🎬',
+  Healthcare: '🩺',
+  Shopping: '🛍️',
+  Education: '📚',
+  Travel: '✈️',
+  Utilities: '💡',
+  Insurance: '🛡️',
+  Other: '📦',
+}

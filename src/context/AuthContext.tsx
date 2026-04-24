@@ -21,16 +21,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+    let isMounted = true
+
+    const initializeSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession()
+        if (!isMounted) return
+        setSession(data.session)
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    initializeSession()
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Prevent protected routes from waiting on slow getSession calls after sign-in.
+      setSession(session)
       setLoading(false)
     })
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-    return () => listener.subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      listener.subscription.unsubscribe()
+    }
   }, [])
 
   const signOut = async () => {

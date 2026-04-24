@@ -75,3 +75,27 @@ export interface MonthlyAnalytics {
     previous: number[]
   }
 }
+
+export interface ForecastInfluencingFactors {
+  trendDirection: 'up' | 'down' | 'flat'
+  trendPercent: number
+  topCategories: Array<{
+    category: string
+    average: number
+    sharePercent: number
+  }>
+}
+
+export interface NextMonthExpenseForecast {
+  month: string
+  predictedExpense: number
+  confidence: {
+    level: 'low' | 'medium' | 'high'
+    lower: number
+    upper: number
+  }
+  factors: ForecastInfluencingFactors
+  dataPoints: number
+  isInsufficientData: boolean
+  message: string
+}

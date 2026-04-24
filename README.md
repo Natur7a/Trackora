@@ -9,6 +9,7 @@ A personal finance tracking app built with **React + TypeScript + Tailwind CSS +
 - 🏷️ **Categories** — Predefined categories for each transaction
 - 📊 **Dashboard** — Balance summary with income/expense totals
 - 📈 **Monthly Analytics** — Monthly totals, category spending breakdown, and month-over-month comparison
+- 🔮 **Expense Forecast** — Next-month expense estimate with confidence range and influencing factors
 - 🛡️ **Row-Level Security** — Only the owner can access their own data
 
 ## Tech Stack
@@ -58,6 +59,7 @@ In your [Supabase SQL Editor](https://app.supabase.com/project/_/sql), run the m
 ```
 supabase/migrations/20240101000000_create_finance_transactions.sql
 supabase/migrations/20260424000000_create_monthly_analytics_function.sql
+supabase/migrations/20260424010000_create_next_month_expense_forecast_function.sql
 ```
 
 This creates the `FinanceTransactions` table with:
@@ -65,6 +67,7 @@ This creates the `FinanceTransactions` table with:
 - Row Level Security (RLS) enabled
 - Policies so only the owner can select/insert/update/delete their own rows
 - `get_monthly_analytics` RPC function that returns chart-ready monthly aggregates for the authenticated user
+- `get_next_month_expense_forecast` RPC function for authenticated, user-scoped forecasting data
 
 ### 5. Run the development server
 

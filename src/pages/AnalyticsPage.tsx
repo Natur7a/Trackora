@@ -17,7 +17,7 @@ function formatChange(value: number) {
 
 export function AnalyticsPage() {
   const { user } = useAuth()
-  const { selectedMonth, setSelectedMonth, analytics, loading, error } = useMonthlyAnalytics(user?.id)
+  const { selectedMonth, setSelectedMonth, analytics, forecast, loading, error } = useMonthlyAnalytics(user?.id)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,6 +54,68 @@ export function AnalyticsPage() {
 
         {!loading && analytics && (
           <>
+            <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Next Month Expense Forecast</h3>
+
+              {!forecast ? (
+                <p className="text-sm text-gray-500">Forecast is unavailable right now.</p>
+              ) : forecast.isInsufficientData ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <p className="text-sm text-amber-800">{forecast.message}</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="rounded-lg bg-blue-50 border border-blue-100 p-4">
+                      <p className="text-xs uppercase text-blue-700">Predicted Expense ({forecast.month})</p>
+                      <p className="text-2xl font-bold text-blue-900 mt-2">{formatCurrency(forecast.predictedExpense)}</p>
+                    </div>
+                    <div className="rounded-lg bg-gray-50 border border-gray-200 p-4">
+                      <p className="text-xs uppercase text-gray-600">Confidence Level</p>
+                      <p className="text-xl font-bold text-gray-900 mt-2 capitalize">{forecast.confidence.level}</p>
+                    </div>
+                    <div className="rounded-lg bg-gray-50 border border-gray-200 p-4">
+                      <p className="text-xs uppercase text-gray-600">Confidence Range</p>
+                      <p className="text-sm font-semibold text-gray-900 mt-2">
+                        {formatCurrency(forecast.confidence.lower)} - {formatCurrency(forecast.confidence.upper)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800 mb-2">Trend Factor</p>
+                      <p className="text-sm text-gray-700">
+                        Direction: <span className="font-medium capitalize">{forecast.factors.trendDirection}</span>
+                      </p>
+                      <p className="text-sm text-gray-700 mt-1">
+                        Change rate: <span className="font-medium">{forecast.factors.trendPercent.toFixed(2)}%</span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">Based on {forecast.dataPoints} months of expense history.</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800 mb-2">Top Influencing Categories</p>
+                      {forecast.factors.topCategories.length === 0 ? (
+                        <p className="text-sm text-gray-500">No category signal available yet.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {forecast.factors.topCategories.map(item => (
+                            <div key={item.category} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-700">{item.category}</span>
+                              <span className="font-medium text-gray-900">
+                                {formatCurrency(item.average)} ({item.sharePercent.toFixed(1)}%)
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </section>
+
             <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                 <p className="text-xs uppercase text-gray-500">Income</p>

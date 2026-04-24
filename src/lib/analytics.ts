@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { MonthlyAnalytics } from '../types'
+import type { MonthlyAnalytics, NextMonthExpenseForecast } from '../types'
 
 interface AnalyticsRpcResponse {
   month: string
@@ -39,6 +39,28 @@ interface AnalyticsRpcResponse {
     current: number[]
     previous: number[]
   }
+}
+
+interface ForecastRpcResponse {
+  month: string
+  predictedExpense: number
+  confidence: {
+    level: 'low' | 'medium' | 'high'
+    lower: number
+    upper: number
+  }
+  factors: {
+    trendDirection: 'up' | 'down' | 'flat'
+    trendPercent: number
+    topCategories: Array<{
+      category: string
+      average: number
+      sharePercent: number
+    }>
+  }
+  dataPoints: number
+  isInsufficientData: boolean
+  message: string
 }
 
 function toNumber(value: unknown): number {
@@ -89,6 +111,30 @@ function normalizeAnalytics(raw: AnalyticsRpcResponse): MonthlyAnalytics {
   }
 }
 
+function normalizeForecast(raw: ForecastRpcResponse): NextMonthExpenseForecast {
+  return {
+    month: raw.month,
+    predictedExpense: toNumber(raw.predictedExpense),
+    confidence: {
+      level: raw.confidence?.level ?? 'low',
+      lower: toNumber(raw.confidence?.lower),
+      upper: toNumber(raw.confidence?.upper),
+    },
+    factors: {
+      trendDirection: raw.factors?.trendDirection ?? 'flat',
+      trendPercent: toNumber(raw.factors?.trendPercent),
+      topCategories: (raw.factors?.topCategories ?? []).map(category => ({
+        category: category.category,
+        average: toNumber(category.average),
+        sharePercent: toNumber(category.sharePercent),
+      })),
+    },
+    dataPoints: toNumber(raw.dataPoints),
+    isInsufficientData: Boolean(raw.isInsufficientData),
+    message: raw.message ?? '',
+  }
+}
+
 export async function fetchMonthlyAnalytics(selectedMonth: string) {
   const { data, error } = await supabase.rpc('get_monthly_analytics', {
     target_month: `${selectedMonth}-01`,
@@ -100,6 +146,19 @@ export async function fetchMonthlyAnalytics(selectedMonth: string) {
 
   return {
     data: normalizeAnalytics(data as AnalyticsRpcResponse),
+    error: null,
+  }
+}
+
+export async function fetchNextMonthExpenseForecast() {
+  const { data, error } = await supabase.rpc('get_next_month_expense_forecast')
+
+  if (error) {
+    return { data: null, error: error.message }
+  }
+
+  return {
+    data: normalizeForecast(data as ForecastRpcResponse),
     error: null,
   }
 }

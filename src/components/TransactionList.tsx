@@ -17,10 +17,6 @@ export function TransactionList({ transactions, loading, onDelete, onUpdate }: T
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
-  const expense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
-  const balance = income - expense
-
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this transaction?')) return
     setDeleteError(null)
@@ -37,47 +33,31 @@ export function TransactionList({ transactions, loading, onDelete, onUpdate }: T
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading transactions...</div>
+        <div className="text-slate-400">Loading transactions...</div>
       </div>
     )
   }
 
   return (
     <div>
-      {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-          <div className="text-xs text-green-600 font-medium uppercase tracking-wide">Income</div>
-          <div className="text-xl font-bold text-green-700 mt-1">{fmt(income)}</div>
-        </div>
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
-          <div className="text-xs text-red-600 font-medium uppercase tracking-wide">Expenses</div>
-          <div className="text-xl font-bold text-red-700 mt-1">{fmt(expense)}</div>
-        </div>
-        <div className={`${balance >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'} border rounded-xl p-4 text-center`}>
-          <div className={`text-xs font-medium uppercase tracking-wide ${balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Balance</div>
-          <div className={`text-xl font-bold mt-1 ${balance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>{fmt(balance)}</div>
-        </div>
-      </div>
-
       {deleteError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+        <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200 mb-4">
           {deleteError}
         </div>
       )}
 
       {transactions.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <div className="text-4xl mb-3">💸</div>
+        <div className="text-center py-12 text-slate-300 bg-white/5 border border-white/10 rounded-2xl">
+          <div className="text-4xl mb-3">$</div>
           <p>No transactions yet. Add your first one!</p>
         </div>
       ) : (
         <div className="space-y-3">
           {transactions.map(tx => (
-            <div key={tx.id} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div key={tx.id} className="bg-white/5 border border-white/10 rounded-2xl shadow-sm overflow-hidden">
               {editingId === tx.id ? (
                 <div className="p-4">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Edit Transaction</h4>
+                  <h4 className="text-sm font-semibold text-slate-200 mb-3">Edit Transaction</h4>
                   <TransactionForm
                     initial={{
                       amount: String(tx.amount),
@@ -96,8 +76,8 @@ export function TransactionList({ transactions, loading, onDelete, onUpdate }: T
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full flex-shrink-0 ${tx.type === 'income' ? 'bg-green-500' : 'bg-red-500'}`} />
                     <div>
-                      <div className="font-semibold text-gray-800 text-sm">{tx.category}</div>
-                      <div className="text-xs text-gray-500">
+                      <div className="font-semibold text-slate-100 text-sm">{tx.category}</div>
+                      <div className="text-xs text-slate-400">
                         {tx.date}{tx.note ? ` · ${tx.note}` : ''}
                       </div>
                     </div>
@@ -108,13 +88,13 @@ export function TransactionList({ transactions, loading, onDelete, onUpdate }: T
                     </span>
                     <button
                       onClick={() => setEditingId(tx.id)}
-                      className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                      className="text-xs text-cyan-300 hover:text-cyan-200 font-medium px-2 py-1 rounded hover:bg-cyan-500/10 transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(tx.id)}
-                      className="text-xs text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                      className="text-xs text-rose-300 hover:text-rose-200 font-medium px-2 py-1 rounded hover:bg-rose-500/10 transition-colors"
                     >
                       Delete
                     </button>

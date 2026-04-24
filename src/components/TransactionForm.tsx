@@ -54,18 +54,18 @@ export function TransactionForm({ initial, onSubmit, onCancel, submitLabel = 'Ad
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
           {error}
         </div>
       )}
       {success && !initial && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+        <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
           Transaction added successfully!
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Amount *</label>
         <input
           type="number"
           name="amount"
@@ -75,17 +75,17 @@ export function TransactionForm({ initial, onSubmit, onCancel, submitLabel = 'Ad
           min="0.01"
           step="0.01"
           required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Type *</label>
         <select
           name="type"
           value={form.type}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
         >
           <option value="income">Income</option>
           <option value="expense">Expense</option>
@@ -93,12 +93,12 @@ export function TransactionForm({ initial, onSubmit, onCancel, submitLabel = 'Ad
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Category *</label>
         <select
           name="category"
           value={form.category}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
         >
           {CATEGORIES.map(cat => (
             <option key={cat} value={cat}>{cat}</option>
@@ -107,26 +107,26 @@ export function TransactionForm({ initial, onSubmit, onCancel, submitLabel = 'Ad
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Date *</label>
         <input
           type="date"
           name="date"
           value={form.date}
           onChange={handleChange}
           required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1">Note</label>
         <textarea
           name="note"
           value={form.note}
           onChange={handleChange}
           placeholder="Optional note..."
           rows={2}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full border border-white/15 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/60 resize-none"
         />
       </div>
 
@@ -134,7 +134,7 @@ export function TransactionForm({ initial, onSubmit, onCancel, submitLabel = 'Ad
         <button
           type="submit"
           disabled={submitting}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-lg text-sm transition-colors"
+          className="flex-1 bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 hover:opacity-90 disabled:opacity-70 font-semibold py-2 px-4 rounded-xl text-sm transition"
         >
           {submitting ? 'Saving...' : submitLabel}
         </button>
@@ -142,7 +142,7 @@ export function TransactionForm({ initial, onSubmit, onCancel, submitLabel = 'Ad
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg text-sm transition-colors"
+            className="flex-1 bg-white/10 hover:bg-white/20 text-slate-100 font-medium py-2 px-4 rounded-xl text-sm transition-colors"
           >
             Cancel
           </button>

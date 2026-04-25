@@ -74,6 +74,69 @@ export interface MonthlyAnalytics {
     current: number[]
     previous: number[]
   }
+  executiveSummary?: ExecutiveSummary
+  alerts?: AnalyticsAlert[]
+  forecastScenarios?: ForecastScenarios
+  spendComposition?: SpendComposition
+  pareto?: ParetoRow[]
+}
+
+export type CompareMode = 'previous_month' | 'avg_3m' | 'avg_12m'
+
+export interface ExecutiveSummary {
+  runwayMonths: number | null
+  burnTrend: {
+    pct: number | null
+    slope: number | null
+  }
+  savingsRatePct: number | null
+  risk: {
+    score: number
+    reason: string
+  }
+}
+
+export interface AnalyticsAlert {
+  id: string
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  type: 'spike' | 'duplicate' | 'new_merchant' | 'trend_break'
+  title: string
+  explanation: string
+  impact: number
+  confidence: 'low' | 'medium' | 'high'
+  action: {
+    label: string
+    intent: 'review' | 'cut' | 'investigate'
+  }
+}
+
+export interface ForecastDriver {
+  category: string
+  impact: number
+}
+
+export interface ForecastScenarios {
+  base: number
+  optimistic: number
+  pessimistic: number
+  deltaFromPrevious?: number
+  drivers: ForecastDriver[]
+  confidence: number
+}
+
+export interface SpendComposition {
+  recurring: number
+  variable: number
+  discretionary: number
+  contracted: number
+  lockedPct: number
+}
+
+export interface ParetoRow {
+  category: string
+  amount: number
+  pct: number
+  cumulativePct: number
 }
 
 export interface ForecastInfluencingFactors {

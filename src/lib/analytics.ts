@@ -1,6 +1,11 @@
 import { supabase } from './supabase'
 import type { MonthlyAnalytics, NextMonthExpenseForecast } from '../types'
 
+interface RawDriver {
+  category: string
+  impact: number
+}
+
 interface AnalyticsRpcResponse {
   month: string
   totals: {
@@ -39,6 +44,52 @@ interface AnalyticsRpcResponse {
     current: number[]
     previous: number[]
   }
+  executiveSummary?: {
+    runwayMonths: number | null
+    burnTrend: {
+      pct: number | null
+      slope: number | null
+    }
+    savingsRatePct: number | null
+    risk: {
+      score: number
+      reason: string
+    }
+  }
+  alerts?: Array<{
+    id: string
+    severity: 'low' | 'medium' | 'high' | 'critical'
+    type: 'spike' | 'duplicate' | 'new_merchant' | 'trend_break'
+    title: string
+    explanation: string
+    impact: number
+    confidence: 'low' | 'medium' | 'high'
+    action: {
+      label: string
+      intent: 'review' | 'cut' | 'investigate'
+    }
+  }>
+  forecastScenarios?: {
+    base: number
+    optimistic: number
+    pessimistic: number
+    deltaFromPrevious?: number
+    drivers: RawDriver[]
+    confidence: number
+  }
+  spendComposition?: {
+    recurring: number
+    variable: number
+    discretionary: number
+    contracted: number
+    lockedPct: number
+  }
+  pareto?: Array<{
+    category: string
+    amount: number
+    pct: number
+    cumulativePct: number
+  }>
 }
 
 interface ForecastRpcResponse {
@@ -108,6 +159,65 @@ function normalizeAnalytics(raw: AnalyticsRpcResponse): MonthlyAnalytics {
       current: (raw.comparisonChart?.current ?? []).map(toNumber),
       previous: (raw.comparisonChart?.previous ?? []).map(toNumber),
     },
+    executiveSummary: raw.executiveSummary
+      ? {
+          runwayMonths: raw.executiveSummary.runwayMonths === null ? null : toNumber(raw.executiveSummary.runwayMonths),
+          burnTrend: {
+            pct: raw.executiveSummary.burnTrend?.pct === null ? null : toNumber(raw.executiveSummary.burnTrend?.pct),
+            slope: raw.executiveSummary.burnTrend?.slope === null ? null : toNumber(raw.executiveSummary.burnTrend?.slope),
+          },
+          savingsRatePct:
+            raw.executiveSummary.savingsRatePct === null ? null : toNumber(raw.executiveSummary.savingsRatePct),
+          risk: {
+            score: toNumber(raw.executiveSummary.risk?.score),
+            reason: raw.executiveSummary.risk?.reason ?? '',
+          },
+        }
+      : undefined,
+    alerts: raw.alerts?.map(alert => ({
+      id: alert.id,
+      severity: alert.severity,
+      type: alert.type,
+      title: alert.title,
+      explanation: alert.explanation,
+      impact: toNumber(alert.impact),
+      confidence: alert.confidence,
+      action: {
+        label: alert.action?.label ?? 'Review',
+        intent: alert.action?.intent ?? 'review',
+      },
+    })),
+    forecastScenarios: raw.forecastScenarios
+      ? {
+          base: toNumber(raw.forecastScenarios.base),
+          optimistic: toNumber(raw.forecastScenarios.optimistic),
+          pessimistic: toNumber(raw.forecastScenarios.pessimistic),
+          deltaFromPrevious:
+            raw.forecastScenarios.deltaFromPrevious === undefined
+              ? undefined
+              : toNumber(raw.forecastScenarios.deltaFromPrevious),
+          drivers: (raw.forecastScenarios.drivers ?? []).map(driver => ({
+            category: driver.category,
+            impact: toNumber(driver.impact),
+          })),
+          confidence: toNumber(raw.forecastScenarios.confidence),
+        }
+      : undefined,
+    spendComposition: raw.spendComposition
+      ? {
+          recurring: toNumber(raw.spendComposition.recurring),
+          variable: toNumber(raw.spendComposition.variable),
+          discretionary: toNumber(raw.spendComposition.discretionary),
+          contracted: toNumber(raw.spendComposition.contracted),
+          lockedPct: toNumber(raw.spendComposition.lockedPct),
+        }
+      : undefined,
+    pareto: raw.pareto?.map(row => ({
+      category: row.category,
+      amount: toNumber(row.amount),
+      pct: toNumber(row.pct),
+      cumulativePct: toNumber(row.cumulativePct),
+    })),
   }
 }
 

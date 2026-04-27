@@ -28,7 +28,7 @@ export function DashboardPage() {
           <aside className="lg:sticky lg:top-24 self-start">
             <div className="glass-card rounded-3xl p-6">
               <h2 className="display-serif text-xl font-semibold mb-4">Add transaction</h2>
-              <TransactionForm onSubmit={add} />
+              <TransactionForm onSubmit={add} transactions={transactions} />
             </div>
           </aside>
 

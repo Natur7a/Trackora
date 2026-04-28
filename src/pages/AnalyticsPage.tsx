@@ -1,18 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  AlertTriangle,
-  ArrowDownRight,
-  ArrowUpRight,
   RefreshCw,
-  ShieldAlert,
-  Wallet,
 } from 'lucide-react'
 import {
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  ComposedChart,
   Line,
   LineChart,
   Pie,
@@ -25,14 +19,18 @@ import {
 } from 'recharts'
 import { Navbar } from '../components/Navbar'
 import { Button } from '../components/ui/button'
+import { AlertCenter } from '../components/analytics/AlertCenter'
+import { ExecutiveSummaryStrip } from '../components/analytics/ExecutiveSummaryStrip'
+import { ForecastDecisionPanel } from '../components/analytics/ForecastDecisionPanel'
+import { ParetoAnalysisCard } from '../components/analytics/ParetoAnalysisCard'
+import { SpendCompositionCard } from '../components/analytics/SpendCompositionCard'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../components/ui/sheet'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { useAuth } from '../context/AuthContext'
 import { useMonthlyAnalytics } from '../hooks/useMonthlyAnalytics'
 import { formatCurrency, formatMonth } from '../lib/format'
 import { CATEGORY_EMOJI } from '../types/finance'
-import type { AnalyticsAlert, ForecastScenarios } from '../types'
+import type { AnalyticsAlert } from '../types'
 
 const COLORS = ['#34d399', '#22d3ee', '#fda4af', '#67e8f9', '#a7f3d0', '#5eead4', '#fb7185', '#2dd4bf']
 
@@ -75,7 +73,7 @@ export function AnalyticsPage() {
   }, [analytics, selectedMonth])
 
   const expenseCategories = analytics?.categoryBreakdown ?? []
-  const paretoCutoff = useMemo(() => pareto.find(item => item.cumulativePct >= 80), [pareto])
+  const openAlert = (alert: AnalyticsAlert) => setActiveAlert(alert)
   const lastUpdatedLabel = lastUpdatedAt
     ? new Intl.DateTimeFormat('en-US', {
         month: 'short',
@@ -84,10 +82,6 @@ export function AnalyticsPage() {
         minute: '2-digit',
       }).format(new Date(lastUpdatedAt))
     : 'Never'
-
-  const scenarioConfidenceBand = forecastScenarios
-    ? `${formatCurrency(forecastScenarios.optimistic)} - ${formatCurrency(forecastScenarios.pessimistic)}`
-    : null
 
   return (
     <div className="min-h-screen">
@@ -160,142 +154,31 @@ export function AnalyticsPage() {
           </div>
         ) : (
           <>
-            <section className="space-y-4">
-              <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Decision Layer</h2>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <ExecutiveCard
-                  icon={<Wallet className="h-4 w-4" />}
-                  title="Runway"
-                  value={
-                    executiveSummary?.runwayMonths === null
-                      ? 'Stable runway'
-                      : `${executiveSummary?.runwayMonths?.toFixed(1) ?? '0.0'} months`
-                  }
-                  detail={
-                    executiveSummary?.runwayMonths === null
-                      ? 'Current net cashflow is non-negative.'
-                      : 'Estimated at current monthly deficit pace.'
-                  }
-                />
-                <ExecutiveCard
-                  icon={(executiveSummary?.burnTrend.pct ?? 0) >= 0 ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                  title="Burn Trend (3M)"
-                  value={formatPercent(executiveSummary?.burnTrend.pct)}
-                  detail={`Slope: ${formatNumber(executiveSummary?.burnTrend.slope)}`}
-                  status={(executiveSummary?.burnTrend.pct ?? 0) > 0 ? 'bad' : 'good'}
-                />
-                <ExecutiveCard
-                  icon={<ArrowUpRight className="h-4 w-4" />}
-                  title="Savings Rate"
-                  value={formatPercent(executiveSummary?.savingsRatePct)}
-                  detail="Income retained after expenses."
-                  status={(executiveSummary?.savingsRatePct ?? 0) >= 0 ? 'good' : 'bad'}
-                />
-                <ExecutiveCard
-                  icon={<ShieldAlert className="h-4 w-4" />}
-                  title="Risk Score"
-                  value={`${Math.round(executiveSummary?.risk.score ?? 0)}/100`}
-                  detail={executiveSummary?.risk.reason ?? 'No risk reason available'}
-                  status={(executiveSummary?.risk.score ?? 0) >= 70 ? 'bad' : (executiveSummary?.risk.score ?? 0) >= 45 ? 'neutral' : 'good'}
-                />
-              </div>
-            </section>
+            <ExecutiveSummaryStrip executiveSummary={executiveSummary} />
 
             <section className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="display-serif text-2xl font-semibold">Forecast decision panel</h3>
                 <p className="text-xs text-muted-foreground">Choose a scenario, then act on top drivers.</p>
               </div>
-              <ForecastDecisionPanel forecastScenarios={forecastScenarios} confidenceBand={scenarioConfidenceBand} />
+              <ForecastDecisionPanel forecastScenarios={forecastScenarios} />
             </section>
 
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="display-serif text-2xl font-semibold">Alert center</h3>
-                <p className="text-xs text-muted-foreground">Top 3 only. Action-first.</p>
-              </div>
-
-              {hydratedSecondary ? (
-                <div className="grid gap-3 md:grid-cols-3">
-                  {alerts.length === 0 && (
-                    <div className="md:col-span-3 rounded-2xl border border-emerald-300/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-                      No critical alert right now. Continue tracking forecast drivers.
-                    </div>
-                  )}
-                  {alerts.map(alert => (
-                    <div key={alert.id} className="glass-card rounded-2xl p-4 border border-white/10">
-                      <div className="flex items-center justify-between gap-3 mb-2">
-                        <p className="text-sm font-medium">{alert.title}</p>
-                        <SeverityPill severity={alert.severity} />
-                      </div>
-                      <p className="text-sm text-muted-foreground">{alert.explanation}</p>
-                      <p className="text-xs mt-3 text-muted-foreground">Impact: {formatCurrency(alert.impact)}</p>
-                      <div className="mt-4 flex gap-2">
-                        <Button size="sm" variant="outline" className="border-white/20 bg-white/5" onClick={() => setActiveAlert(alert)}>
-                          {alert.action.label}
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => dismissAlert(alert.id)}>Dismiss</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="h-32 glass-card rounded-2xl animate-pulse" />
-              )}
-            </section>
+            <AlertCenter
+              alerts={alerts}
+              hydrated={hydratedSecondary}
+              onOpenAlert={openAlert}
+              onDismissAlert={dismissAlert}
+            />
 
             <section className="space-y-4">
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Insight Layer</h2>
               <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-                <div className="glass-card rounded-3xl p-6">
-                  <h3 className="display-serif text-2xl font-semibold mb-1">Spend composition</h3>
-                  <p className="text-sm text-muted-foreground mb-6">Interpretable split of expense behavior.</p>
-                  {spendComposition ? (
-                    <>
-                      <div className="space-y-3">
-                        <CompositionRow label="Recurring" value={spendComposition.recurring} total={analytics.totals.expense} color="#22d3ee" />
-                        <CompositionRow label="Variable" value={spendComposition.variable} total={analytics.totals.expense} color="#a7f3d0" />
-                        <CompositionRow label="Discretionary" value={spendComposition.discretionary} total={analytics.totals.expense} color="#fb7185" />
-                        <CompositionRow label="Contracted" value={spendComposition.contracted} total={analytics.totals.expense} color="#67e8f9" />
-                      </div>
-                      <div className="mt-5 rounded-xl border border-cyan-300/20 bg-cyan-500/10 p-4">
-                        <p className="text-sm text-cyan-100">You are locked into {spendComposition.lockedPct.toFixed(1)}% of your spending.</p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">Composition unavailable.</div>
-                  )}
-                </div>
-
-                <div className="glass-card rounded-3xl p-6">
-                  <h3 className="display-serif text-2xl font-semibold mb-1">Pareto categories</h3>
-                  <p className="text-sm text-muted-foreground mb-6">See how quickly spend concentrates toward 80%.</p>
-                  {pareto.length === 0 ? (
-                    <div className="h-64 grid place-items-center text-muted-foreground italic">No category data.</div>
-                  ) : (
-                    <>
-                      <div className="h-72">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <ComposedChart data={pareto}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.12)" vertical={false} />
-                            <XAxis dataKey="category" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                            <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${Number(v).toFixed(0)}%`} />
-                            <Tooltip
-                              contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12 }}
-                              formatter={(value: number) => `${Number(value).toFixed(1)}%`}
-                            />
-                            <ReferenceLine y={80} stroke="#facc15" strokeDasharray="6 6" label={{ value: '80% cutoff', fill: '#facc15', fontSize: 11 }} />
-                            <Bar dataKey="pct" fill="#22d3ee" radius={[6, 6, 0, 0]} />
-                            <Line type="monotone" dataKey="cumulativePct" stroke="#fb7185" strokeWidth={2} dot={false} />
-                          </ComposedChart>
-                        </ResponsiveContainer>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-3">
-                        80% spend threshold reached at <span className="text-slate-100">{paretoCutoff?.category ?? 'n/a'}</span>.
-                      </p>
-                    </>
-                  )}
-                </div>
+                <SpendCompositionCard
+                  spendComposition={spendComposition}
+                  totalExpense={analytics.totals.expense}
+                />
+                <ParetoAnalysisCard pareto={pareto} />
               </div>
             </section>
 
@@ -462,161 +345,6 @@ export function AnalyticsPage() {
       </main>
     </div>
   )
-}
-
-function ExecutiveCard({
-  icon,
-  title,
-  value,
-  detail,
-  status = 'neutral',
-}: {
-  icon: React.ReactNode
-  title: string
-  value: string
-  detail: string
-  status?: 'good' | 'bad' | 'neutral'
-}) {
-  const toneClass = status === 'good' ? 'text-emerald-200' : status === 'bad' ? 'text-rose-200' : 'text-slate-200'
-
-  return (
-    <div className="glass-card rounded-2xl p-6">
-      <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
-        {icon}
-        {title}
-      </div>
-      <div className={`display-serif text-2xl mt-3 mono tabular-nums ${toneClass}`}>{value}</div>
-      <p className="text-sm text-muted-foreground mt-2">{detail}</p>
-    </div>
-  )
-}
-
-function SeverityPill({ severity }: { severity: AnalyticsAlert['severity'] }) {
-  const className =
-    severity === 'critical'
-      ? 'bg-rose-500/20 text-rose-100 border-rose-300/30'
-      : severity === 'high'
-        ? 'bg-orange-500/20 text-orange-100 border-orange-300/30'
-        : severity === 'medium'
-          ? 'bg-amber-500/20 text-amber-100 border-amber-300/30'
-          : 'bg-emerald-500/20 text-emerald-100 border-emerald-300/30'
-
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${className}`}>
-      <AlertTriangle className="h-3 w-3" />
-      {severity}
-    </span>
-  )
-}
-
-function ForecastDecisionPanel({
-  forecastScenarios,
-  confidenceBand,
-}: {
-  forecastScenarios: ForecastScenarios | null
-  confidenceBand: string | null
-}) {
-  if (!forecastScenarios) {
-    return (
-      <div className="glass-card rounded-3xl p-6">
-        <p className="text-sm text-muted-foreground">Forecast is unavailable right now.</p>
-      </div>
-    )
-  }
-
-  const previousReference =
-    forecastScenarios.deltaFromPrevious === undefined
-      ? null
-      : forecastScenarios.base / (1 + forecastScenarios.deltaFromPrevious / 100)
-
-  const scenarios = [
-    { key: 'base', label: 'Base', value: forecastScenarios.base },
-    { key: 'optimistic', label: 'Optimistic', value: forecastScenarios.optimistic },
-    { key: 'pessimistic', label: 'Pessimistic', value: forecastScenarios.pessimistic },
-  ] as const
-
-  return (
-    <div className="glass-card rounded-3xl p-6">
-      <Tabs defaultValue="base">
-        <TabsList className="bg-white/5 border border-white/10">
-          {scenarios.map(scenario => (
-            <TabsTrigger key={scenario.key} value={scenario.key}>{scenario.label}</TabsTrigger>
-          ))}
-        </TabsList>
-
-        {scenarios.map(scenario => {
-          const delta = previousReference && previousReference > 0
-            ? ((scenario.value - previousReference) / previousReference) * 100
-            : null
-
-          return (
-            <TabsContent key={scenario.key} value={scenario.key} className="mt-4">
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 p-4">
-                  <p className="text-xs uppercase tracking-widest text-cyan-200">Value</p>
-                  <p className="display-serif text-3xl mt-2 text-cyan-100">{formatCurrency(scenario.value)}</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-widest text-muted-foreground">Delta vs last forecast</p>
-                  <p className="text-xl mt-2 mono tabular-nums">{formatPercent(delta)}</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-widest text-muted-foreground">Confidence band</p>
-                  <p className="text-sm mt-2 text-slate-100">{confidenceBand ?? 'n/a'}</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-widest text-muted-foreground">Confidence score</p>
-                  <p className="text-xl mt-2 mono tabular-nums">{Math.round(forecastScenarios.confidence * 100)}%</p>
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Drivers (top 3)</p>
-                {forecastScenarios.drivers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No scenario drivers available yet.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {forecastScenarios.drivers.map(driver => (
-                      <div key={driver.category} className="flex items-center justify-between text-sm">
-                        <span>{driver.category}</span>
-                        <span className="mono tabular-nums text-muted-foreground">{formatCurrency(driver.impact)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          )
-        })}
-      </Tabs>
-    </div>
-  )
-}
-
-function CompositionRow({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
-  const pct = total > 0 ? (value / total) * 100 : 0
-
-  return (
-    <div>
-      <div className="flex justify-between text-sm mb-1">
-        <span>{label}</span>
-        <span className="mono tabular-nums text-muted-foreground">{formatCurrency(value)} ({pct.toFixed(1)}%)</span>
-      </div>
-      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
-      </div>
-    </div>
-  )
-}
-
-function formatPercent(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(value)) return 'n/a'
-  return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`
-}
-
-function formatNumber(value: number | null | undefined) {
-  if (value === null || value === undefined || Number.isNaN(value)) return 'n/a'
-  return value.toFixed(2)
 }
 
 export default AnalyticsPage

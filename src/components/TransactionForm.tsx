@@ -1,15 +1,40 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, type TxType } from '../types/finance';
 import type { TransactionFormData, FinanceTransaction } from '../types';
-import { ArrowDownCircle, ArrowUpCircle, Plus, Sparkles, X } from 'lucide-react';
+import { ArrowDownCircle, ArrowUpCircle, CalendarDays, Plus, Sparkles, X } from 'lucide-react';
 import { toast } from '../components/ui/sonner';
 import { suggestCategory } from '../lib/categorySuggestion';
 
 type TxInput = TransactionFormData;
+
+function toLocalDateInputValue() {
+  const now = new Date();
+  const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return localTime.toISOString().slice(0, 10);
+}
+
+function normalizeDateInputValue(value?: string) {
+  if (!value) return toLocalDateInputValue();
+
+  const trimmed = value.trim();
+  const isoDateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoDateOnlyMatch) return trimmed;
+
+  const isoDateTimeMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})T/);
+  if (isoDateTimeMatch) return isoDateTimeMatch[1];
+
+  const slashDateMatch = trimmed.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (slashDateMatch) {
+    const [, day, month, year] = slashDateMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  return toLocalDateInputValue();
+}
 
 interface Props {
   onSubmit: (input: TxInput) => Promise<{ error: string | null }>;
@@ -20,10 +45,11 @@ interface Props {
 }
 
 export const TransactionForm = ({ onSubmit, initial, submitLabel = 'Add transaction', onCancel, transactions = [] }: Props) => {
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const [type, setType] = useState<TxType>(initial?.type ?? 'expense');
   const [amount, setAmount] = useState(initial?.amount?.toString() ?? '');
   const [category, setCategory] = useState(initial?.category ?? '');
-  const [date, setDate] = useState(initial?.date ?? new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => normalizeDateInputValue(initial?.date));
   const [note, setNote] = useState(initial?.note ?? '');
   const [busy, setBusy] = useState(false);
   const [suggestion, setSuggestion] = useState<string | null>(null);
@@ -74,6 +100,7 @@ export const TransactionForm = ({ onSubmit, initial, submitLabel = 'Add transact
     const num = Number(amount);
     if (!num || num <= 0) return toast.error('Enter a valid amount');
     if (!category) return toast.error('Pick a category');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return toast.error('Pick a valid date');
     setBusy(true);
     const { error } = await onSubmit({ amount: String(num), type, category, date, note: note || '' });
     setBusy(false);
@@ -127,7 +154,37 @@ export const TransactionForm = ({ onSubmit, initial, submitLabel = 'Add transact
         </div>
         <div>
           <Label htmlFor="date" className="text-xs uppercase tracking-widest text-slate-400">Date</Label>
-          <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 h-12 bg-white/10 border-white/10 rounded-xl" />
+          <div className="relative mt-1">
+            <Input
+              ref={dateInputRef}
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              onClick={(event) => {
+                const input = event.currentTarget;
+                if (typeof input.showPicker === 'function') {
+                  input.showPicker();
+                }
+              }}
+              className="h-12 bg-white/10 border-white/10 rounded-xl pr-11"
+            />
+            <button
+              type="button"
+              aria-label="Open date picker"
+              onClick={() => {
+                const input = dateInputRef.current;
+                if (!input) return;
+                input.focus();
+                if (typeof input.showPicker === 'function') {
+                  input.showPicker();
+                }
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-2 text-slate-300 hover:bg-white/10 hover:text-slate-100"
+            >
+              <CalendarDays className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 

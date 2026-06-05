@@ -47,6 +47,25 @@ export function useTransactions(userId?: string) {
     return { error: null }
   }
 
+  const addManyTransactions = async (formDataList: TransactionFormData[]) => {
+    if (!activeUserId) return { error: 'Not authenticated' }
+    if (formDataList.length === 0) return { error: 'No transactions to import' }
+
+    const payload = formDataList.map((formData) => ({
+      user_id: activeUserId,
+      amount: parseFloat(formData.amount),
+      type: formData.type,
+      category: formData.category,
+      date: formData.date,
+      note: formData.note || null,
+    }))
+
+    const { error } = await supabase.from('FinanceTransactions').insert(payload)
+    if (error) return { error: error.message }
+    await fetchTransactions()
+    return { error: null }
+  }
+
   const updateTransaction = async (id: string, formData: TransactionFormData) => {
     const { error } = await supabase
       .from('FinanceTransactions')
@@ -88,7 +107,9 @@ export function useTransactions(userId?: string) {
     add: addTransaction,
     update: updateTransaction,
     remove: deleteTransaction,
+    importTransactions: addManyTransactions,
     addTransaction,
+    addManyTransactions,
     updateTransaction,
     deleteTransaction,
     refetch: fetchTransactions,

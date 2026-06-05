@@ -2,10 +2,11 @@ import { Navbar } from '../components/Navbar'
 import { BalanceSummary } from '../components/BalanceSummary'
 import { TransactionForm } from '../components/TransactionForm.tsx'
 import { TransactionList } from '../components/TransactionList.tsx'
+import { ImportTransactionsDialog } from '../components/ImportTransactionsDialog'
 import { useTransactions } from '../hooks/useTransactions'
 
 export function DashboardPage() {
-  const { transactions, loading, error, income, expense, balance, add, update, remove } = useTransactions()
+  const { transactions, loading, error, income, expense, balance, add, update, remove, importTransactions } = useTransactions()
 
   return (
     <div className="min-h-screen">
@@ -35,7 +36,10 @@ export function DashboardPage() {
           <section>
             <div className="flex items-baseline justify-between mb-4">
               <h2 className="display-serif text-2xl font-semibold">Recent activity</h2>
-              <span className="text-sm text-muted-foreground">{transactions.length} {transactions.length === 1 ? 'entry' : 'entries'}</span>
+              <div className="flex items-center gap-3">
+                <ImportTransactionsDialog onImport={importTransactions} />
+                <span className="text-sm text-muted-foreground">{transactions.length} {transactions.length === 1 ? 'entry' : 'entries'}</span>
+              </div>
             </div>
             <TransactionList transactions={transactions} loading={loading} onUpdate={update} onDelete={remove} />
           </section>

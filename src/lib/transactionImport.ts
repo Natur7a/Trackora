@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx'
-import type { TransactionFormData, TransactionType } from '../types'
+import type { FinanceTransaction, TransactionFormData, TransactionType } from '../types'
 
 export type TemplateFormat = 'csv' | 'xlsx'
 
@@ -42,6 +42,47 @@ export function downloadTransactionTemplate(format: TemplateFormat) {
   downloadBlob(
     new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
     'trackora-transactions-template.xlsx',
+  )
+}
+
+function escapeCsvCell(value: string | number): string {
+  const str = String(value)
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`
+  }
+  return str
+}
+
+export function exportTransactions(transactions: FinanceTransaction[], format: TemplateFormat): void {
+  const rows = transactions
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .map((tx) => ({
+      amount: tx.amount,
+      type: tx.type,
+      category: tx.category,
+      date: tx.date,
+      note: tx.note ?? '',
+    }))
+
+  const fileName = `trackora-transactions-${new Date().toISOString().slice(0, 10)}`
+
+  if (format === 'csv') {
+    const lines = [
+      REQUIRED_HEADERS.join(','),
+      ...rows.map((r) => [r.amount, r.type, r.category, r.date, r.note].map(escapeCsvCell).join(',')),
+    ]
+    downloadBlob(new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' }), `${fileName}.csv`)
+    return
+  }
+
+  const worksheet = XLSX.utils.json_to_sheet(rows, { header: [...REQUIRED_HEADERS] })
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions')
+  const data = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+  downloadBlob(
+    new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    `${fileName}.xlsx`,
   )
 }
 

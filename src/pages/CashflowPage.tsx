@@ -242,7 +242,7 @@ function ZonePanel({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function CashflowPage() {
-  const { transactions, income, expense } = useTransactions()
+  const { transactions, income } = useTransactions()
   const { classified, loading: aiLoading, error: aiError, classify } = useAIZoneClassifier()
 
   // ── Run AI classification whenever transactions change ───────────────────────
